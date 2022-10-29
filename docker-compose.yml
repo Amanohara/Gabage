@@ -1,0 +1,52 @@
+version: "3"
+services:
+  db:
+    image: mysql:5.7
+    #container_name: "mysql57"
+    volumes:
+      - ./db/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass_fB3uWvTS
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user_pass_Ck6uTvrQ
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - wordpress
+    restart: always
+    environment:
+      DOMAINS: 'dandango.pw -> http://wordpress:80'
+      # STAGE: 'production' # Don't use production until staging works
+      # FORCE_RENEW: 'true'
+    volumes: 
+      - https-portal-data:/var/lib/https-portal
+  wordpress:
+    image: wordpress:latest
+    #container_name: "wordpress"
+    volumes:
+      - ./wordpress/html:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/conf.d/php.ini
+    restart: always
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wordpress_db
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: user_pass_Ck6uTvrQ
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    #container_name: "phpmyadmin"
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - 8888:80
+volumes:
+  https-portal-data:
